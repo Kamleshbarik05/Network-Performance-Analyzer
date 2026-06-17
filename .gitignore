@@ -209,3 +209,12 @@ __marimo__/
 #Ignore VS Code settings
 .vscode/
 
+# Frontend dependencies and builds
+node_modules/
+dist/
+
+# SQLite databases
+*.db
+*.sqlite3
+*.db-journal
+*.sqlite3-journal
