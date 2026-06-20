@@ -59,7 +59,7 @@ export default function App() {
 
   const connectWS = () => {
     console.log("Connecting to WebSocket telemetry...");
-    const ws = new WebSocket("ws://localhost:8000/ws/telemetry");
+    const ws = new WebSocket("ws://13.206.235.156:8000/ws/telemetry");
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -98,7 +98,7 @@ export default function App() {
     setIsSpeedTesting(true);
     setSpeedTest(null);
     try {
-      const response = await fetch("http://localhost:8000/api/speedtest", { method: 'POST' });
+      const response = await fetch("http://13.206.235.156:8000/api/speedtest", { method: 'POST' });
       const result = await response.json();
       if (response.ok) {
         setSpeedTest(result);
@@ -115,7 +115,7 @@ export default function App() {
 
   const fetchSpeedtestHistory = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/history/speedtest");
+      const response = await fetch("http://13.206.235.156:8000/api/history/speedtest");
       const result = await response.json();
       setSpeedtestHistory(result);
     } catch (err) {
@@ -127,7 +127,7 @@ export default function App() {
     setIsScanning(true);
     setScanResults([]);
     try {
-      const url = `http://localhost:8000/api/scan?ip=${scanIp}&ports=${scanPorts}`;
+      const url = `http://13.206.235.156:8000/api/scan?ip=${scanIp}&ports=${scanPorts}`;
       const response = await fetch(url);
       const result = await response.json();
       if (response.ok) {
