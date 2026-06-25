@@ -19,6 +19,12 @@ ChartJS.register(
   Title, Tooltip, Legend, ArcElement, Filler
 );
 
+// Dynamic protocol autodetect (fixes Mixed Content browser blocks)
+const BACKEND_HOST = import.meta.env.VITE_BACKEND_IP || "localhost:8000";
+const IS_HTTPS = window.location.protocol === "https:";
+const WS_URL = `${IS_HTTPS ? "wss" : "ws"}://${BACKEND_HOST}/ws/telemetry`;
+const API_URL = (path: string) => `${IS_HTTPS ? "https" : "http"}://${BACKEND_HOST}${path}`;
+
 export default function App() {
   // --- WebSockets Telemetry State ---
   const [isConnected, setIsConnected] = useState(false);
@@ -59,7 +65,7 @@ export default function App() {
 
   const connectWS = () => {
     console.log("Connecting to WebSocket telemetry...");
-    const ws = new WebSocket("ws://13.206.235.156:8000/ws/telemetry");
+    const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -98,7 +104,7 @@ export default function App() {
     setIsSpeedTesting(true);
     setSpeedTest(null);
     try {
-      const response = await fetch("http://13.206.235.156:8000/api/speedtest", { method: 'POST' });
+      const response = await fetch(API_URL("/api/speedtest"), { method: 'POST' });
       const result = await response.json();
       if (response.ok) {
         setSpeedTest(result);
@@ -115,7 +121,7 @@ export default function App() {
 
   const fetchSpeedtestHistory = async () => {
     try {
-      const response = await fetch("http://13.206.235.156:8000/api/history/speedtest");
+      const response = await fetch(API_URL("/api/history/speedtest"));
       const result = await response.json();
       setSpeedtestHistory(result);
     } catch (err) {
@@ -127,7 +133,7 @@ export default function App() {
     setIsScanning(true);
     setScanResults([]);
     try {
-      const url = `http://13.206.235.156:8000/api/scan?ip=${scanIp}&ports=${scanPorts}`;
+      const url = API_URL(`/api/scan?ip=${scanIp}&ports=${scanPorts}`);
       const response = await fetch(url);
       const result = await response.json();
       if (response.ok) {
