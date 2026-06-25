@@ -6,7 +6,7 @@ Designed with advanced software engineering patterns—**asynchronous I/O concur
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 ```
                     +------------------------------------+
@@ -40,7 +40,7 @@ Designed with advanced software engineering patterns—**asynchronous I/O concur
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
 *   **Real-time WebSocket Telemetry**: Low-latency, full-duplex WebSocket connections streaming ping, standard deviation jitter, packet loss, and global NIC throughput.
 *   **Multi-threaded Packet Sniffer**: Background packet capturing using `scapy` on a dedicated thread, compiling packet distribution percentages (TCP/UDP/ICMP/DNS) and monitoring top hosts without blocking the web server.
@@ -51,14 +51,14 @@ Designed with advanced software engineering patterns—**asynchronous I/O concur
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 *   **Backend**: Python 3.11, FastAPI, Uvicorn, SQLAlchemy (SQLite), Psutil, Scapy, Ping3, Speedtest-cli.
 *   **Frontend**: React, TypeScript, Vite, Chart.js, React-ChartJS-2, Lucide Icons.
 
 ---
 
-## 📁 Repository Structure
+##  Repository Structure
 
 ```text
 ├── backend/
@@ -92,7 +92,7 @@ Designed with advanced software engineering patterns—**asynchronous I/O concur
 
 ---
 
-## ⚙️ Setup and Installation
+##  Setup and Installation
 
 ### 1. Backend (Run as Administrator)
 The packet sniffer requires raw socket access to read interface packets, which requires **Administrator privileges** on Windows/Linux.
@@ -133,7 +133,7 @@ Open your browser to **[http://localhost:5173](http://localhost:5173)** to see t
 
 ---
 
-## 💡 Systems & Concurrency Talking Points for Interviews
+##  Systems & Concurrency Talking Points for Interviews
 
 Prepare to speak about these architectural designs in your FAANG coding and system design interviews:
 
