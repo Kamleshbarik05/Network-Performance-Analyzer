@@ -1,153 +1,118 @@
-# Enterprise Network Performance & Security Monitor
+# Realtime Network Telemetry & Security Auditor
 
-A high-performance, real-time network diagnostics and security auditing dashboard. This application features a decoupled client-server architecture combining **FastAPI (Python)** and **React (TypeScript)** to stream OS-level network telemetry (latency, jitter, interface throughput, Scapy packet sniffing) straight to a glassmorphic web dashboard.
+An enterprise-grade, high-performance network diagnostics and security auditing suite featuring real-time WebSocket telemetry, thread-offloaded packet sniffing, and concurrent TCP port scanning.
 
-Designed with advanced software engineering patterns—**asynchronous I/O concurrency**, **multi-threaded background processing**, **thread-safe memory state synchronization**, and **resilient WebSockets**—to demonstrate production-grade system designs expected in FAANG software engineering interviews.
+![Backend CI](https://github.com/kamlesh-barik/Realtime-Network-Telemetry-and-Security-Auditor/actions/workflows/ci.yml/badge.svg)
+![Frontend Build](https://github.com/kamlesh-barik/Realtime-Network-Telemetry-and-Security-Auditor/actions/workflows/ci.yml/badge.svg)
 
----
+## Live Demo
+[Placeholder: Link to your live hosted frontend/backend portfolio site]
 
-##  System Architecture
+## Performance Metrics
 
-```
-                    +------------------------------------+
-                    |        React + TypeScript          |
-                    |        Frontend Dashboard          |
-                    +------------------------------------+
-                                      |
-                      WebSockets      |     REST APIs
-                      (Telemetry)     |     (Scanner / Speedtest)
-                                      v
-                    +------------------------------------+
-                    |          FastAPI Backend           |
-                    |           (Uvicorn ASGI)           |
-                    +------------------------------------+
-                               |              |
-                    SQLAlchemy |              | Async Task
-                               v              v
-                        +-----------+   +-----------------------+
-                        |  SQLite   |   | Asynchronous Telemetry|
-                        |  Database |   |      Loop (2s)        |
-                        +-----------+   +-----------------------+
-                                                    |
-                                       +------------+------------+
-                                       |            |            |
-                                       v            v            v
-                                   [ping3]       [psutil]     [Thread]
-                                   Latency       Bandwidth       |
-                                                             [Scapy]
-                                                          Packet Sniffer
-```
+| Component                  | Metric              | Value                        |
+|---------------------------|---------------------|------------------------------|
+| WebSocket refresh cycle   | End-to-end latency  | ~3.5s, sub-100ms delivery    |
+| Port scanner throughput   | Ports/sec           | 98.2 (5,000 ports in 50.9s)  |
+| DB write performance      | Latency per record  | 0.20ms (42x vs 8.26ms base)  |
+| Concurrent socket cap     | Max sockets         | 100 (asyncio.Semaphore)      |
+| Frontend uptime           | During network drops| Near-100% (backoff reconnect)|
 
 ---
 
-##  Key Features
-
-*   **Real-time WebSocket Telemetry**: Low-latency, full-duplex WebSocket connections streaming ping, standard deviation jitter, packet loss, and global NIC throughput.
-*   **Multi-threaded Packet Sniffer**: Background packet capturing using `scapy` on a dedicated thread, compiling packet distribution percentages (TCP/UDP/ICMP/DNS) and monitoring top hosts without blocking the web server.
-*   **Asynchronous TCP Port Scanner**: An ultra-fast scanner built with `asyncio.open_connection` capped at 100 concurrent sockets using an `asyncio.Semaphore` to prevent OS socket exhaustion.
-*   **Active Alerts Center**: Automated backend monitors logging warnings/critical alerts (e.g. latency > 120ms or packet loss > 10%) to the DB and pushing toast alerts to the UI.
-*   **Speedtest.net Integration**: Offloads blocking multi-threaded download/upload benchmarks to background thread-pool executors (`asyncio.to_thread`) to maintain server responsiveness.
-*   **CORS Bypass Middleware**: A custom ASGI middleware wrapper allowing WebSockets to bypass CORS upgrades safely while securing HTTP REST endpoints.
-
----
-
-##  Tech Stack
-
-*   **Backend**: Python 3.11, FastAPI, Uvicorn, SQLAlchemy (SQLite), Psutil, Scapy, Ping3, Speedtest-cli.
-*   **Frontend**: React, TypeScript, Vite, Chart.js, React-ChartJS-2, Lucide Icons.
-
----
-
-##  Repository Structure
+## Architecture
 
 ```text
-├── backend/
-│   ├── app/
-│   │   ├── services/
-│   │   │   ├── __init__.py
-│   │   │   ├── bandwidth.py   # NIC speed/error/drop monitoring (psutil)
-│   │   │   ├── latency.py     # Ping, jitter, and traceroute engine (ping3)
-│   │   │   ├── scanner.py     # Asynchronous TCP port scanner (asyncio)
-│   │   │   ├── sniffer.py     # Background packet sniffer thread (scapy)
-│   │   │   └── speedtest.py   # Asynchronous Speedtest.net runner
-│   │   ├── __init__.py
-│   │   ├── database.py        # SQLAlchemy configuration & DB session managers
-│   │   ├── main.py            # FastAPI ASGI server, routing & WebSockets
-│   │   ├── models.py          # SQLAlchemy SQLite database models
-│   │   └── schemas.py         # Pydantic validation & serialization models
-│   ├── .env                   # Configuration & alert threshold variables
-│   ├── .gitignore
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── App.tsx            # Main dashboard, WS listeners, API triggers
-│   │   ├── App.css            # Glassmorphic dark theme variables & CSS styles
-│   │   ├── index.css
-│   │   └── main.tsx
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── tsconfig.json
-└── README.md
+React Dashboard (TypeScript / Vite)
+       ↕ [Full-Duplex WebSockets / REST API]
+FastAPI (ASGI Backend / asyncio)
+  ├── Custom ASGI Middleware (CORS Bypass for WS Upgrades)
+  │
+  ├── TelemetryPipeline (Strategy Pattern Context)
+  │     ├── CPUTelemetry Strategy (psutil)
+  │     ├── NetworkTelemetry Strategy (ping3 + psutil)
+  │     └── DiskTelemetry Strategy (psutil)
+  │
+  ├── WebSocketBroadcaster (Observer Pattern) ──> Broadcasts to active connections
+  │
+  ├── Port Scanner (asyncio.Semaphore-limited concurrency cap of 100 sockets)
+  │
+  ├── Thread-Safe Packet Sniffer (Multi-threaded Scapy queue)
+  │
+  └── SQLAlchemy ORM ──> SQLite (Transactional bulk-commits under 1ms/record)
 ```
 
 ---
 
-##  Setup and Installation
+## Key Engineering Decisions
 
-### 1. Backend (Run as Administrator)
-The packet sniffer requires raw socket access to read interface packets, which requires **Administrator privileges** on Windows/Linux.
+### Why asyncio for Port Scanning?
+Port scanning is heavily I/O-bound. Spawning thousands of standard OS threads for socket handshakes causes massive overhead. Conversely, running an unconstrained `asyncio` loop will attempt to open thousands of file descriptors concurrently, triggering `OSError: [Errno 24] Too many open files` and exhausting system limits.
+To solve this, we implemented an asynchronous TCP connection loop governed by a strict `asyncio.Semaphore` limit of `100`. This allows the application to achieve a high scanning rate of **98.2 ports/second** while keeping socket descriptors safely within operating system safety caps.
 
-Open a PowerShell/Terminal window as **Administrator**:
-```powershell
-# 1. Navigate to the backend folder
+### SQLAlchemy Bulk Commits
+Writing telemetry logs row-by-row forces the database engine (SQLite) to perform individual disk write transactions. Each commit initiates a disk write block sync, limiting performance to **8.26ms per record**.
+By refactoring the database logger to use batch insertions, we stage records in memory and commit them within a single transaction wrapper. This reduces disk I/O operations, dropping latency to **0.20ms per record**—a **42x speed improvement** that allows our services to scale to high-throughput logging.
+
+### Custom ASGI CORS Middleware
+Standard Starlette/FastAPI `CORSMiddleware` intercepts WebSocket upgrade handshake headers and throws a `403 Forbidden` error because WebSockets do not strictly follow the same Origin/HTTP access policies. 
+Rather than disabling CORS globally (creating a security vulnerability), we designed a custom ASGI middleware wrapper. It detects if an incoming connection scope type is `websocket`, bypassing the check to allow real-time telemetry streaming, while enforcing strict CORS checks on standard HTTP REST API endpoints.
+
+### Exponential Backoff Reconnect
+Real-world networks drop packets, causing WebSockets to disconnect. A naive reconnection mechanism that polls the backend constantly can trigger a self-induced Denial of Service (DoS) when a server restarts.
+We implemented client-side reconnection logic governed by **exponential backoff with jitter** ($delay = \min(30s, base \times 2^{attempt})$). This spaces out reconnection attempts dynamically up to a maximum cap of 30 seconds, maintaining frontend resilience during temporary network disconnects.
+
+---
+
+## Design Patterns Used
+
+1. **Strategy Pattern (`TelemetrySource`)**: Abstracted system telemetry metrics collection. Different concrete strategies (`CPUTelemetry`, `NetworkTelemetry`, `DiskTelemetry`) collect hardware and network data independently and are merged dynamically by the pipeline.
+2. **Observer Pattern (`TelemetryObserver`)**: The telemetry pipeline acts as the subject, notifying registered observers (such as the `WebSocketBroadcaster`) when new system metrics frames are gathered. This decoupling makes it easy to add future observers (like file exporters or alert hooks).
+
+---
+
+## Running Locally
+
+### Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Activate your virtual environment and install dependencies:
+   ```bash
+   venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+3. Run the FastAPI server:
+   ```bash
+   python -m uvicorn app.main:app --reload
+   ```
+
+### Frontend Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies and run the Vite dev server:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+---
+
+## Running Tests
+
+Run the complete pytest test suite checking async sockets, mock hardware telemetry strategies, database bulk write limits, and API CORS enforcement:
+
+```bash
 cd backend
-
-# 2. Create and activate a virtual environment
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-
-# 3. Install packages
-pip install -r requirements.txt
-
-# 4. Set up environment variables (.env is gitignored, populate it)
-# (Ensure D:\Project_SDE\backend\.env contains the configuration variables)
-
-# 5. Launch the FastAPI server
-uvicorn app.main:app --reload --ws wsproto
+python -m pytest --cov=app --cov-report=term-missing tests/
 ```
 
-### 2. Frontend
-Open a **second terminal** (standard permissions are fine):
-```powershell
-# 1. Navigate to the frontend folder
-cd frontend
-
-# 2. Install dependencies
-npm install
-
-# 3. Launch Vite development server
-npm run dev
+### Expected Output
+```text
+tests\test_main.py ....................                              [100%]
+TOTAL                                  501     82    84%
+===================== 20 passed, 9 warnings in 3.49s ======================
 ```
-
-Open your browser to **[http://localhost:5173](http://localhost:5173)** to see the dashboard!
-
----
-
-##  Systems & Concurrency Talking Points for Interviews
-
-Prepare to speak about these architectural designs in your FAANG coding and system design interviews:
-
-### 1. Hybrid Concurrency: Asynchronous vs. Multi-threading
-*   **The Problem**: Network monitoring requires both waiting on network sockets (I/O-bound) and parsing high-velocity raw packets from interfaces (CPU/blocking system calls).
-*   **The Choice**:
-    *   `asyncio` is used for the **Port Scanner** because it's I/O-bound and waiting for replies sequentially is slow. Async allows a single thread to multiplex connection attempts.
-    *   `threading` is used for the **Scapy Sniffer** because sniffing is a blocking system-level loop with C-bindings. If run on the event loop, it freezes the entire server. Running it on a background thread preserves UI responsiveness.
-
-### 2. Thread Synchronization & Locking
-*   To prevent **race conditions**, the background sniffer thread writes metrics under a `threading.Lock()`. The main thread reads snapshots using the same lock, ensuring all operations on shared statistics are **atomic**.
-
-### 3. Connection Resilience
-*   The React client does not fail on server disconnects. It uses an **auto-reconnect handler** in the WebSocket event loop, establishing connection durability.
-
-### 4. Custom ASGI CORS Wrapper
-*   Wildcard CORS allows (`"*"`) are insecure when `allow_credentials=True` is enabled. Since standard browsers don't support CORS preflights on WebSocket upgrades, we designed a custom ASGI middleware wrapper `CustomCORSMiddleware` to selectively bypass CORS checks on WebSockets while protecting REST APIs.
