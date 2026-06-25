@@ -2,11 +2,11 @@
 
 An enterprise-grade, high-performance network diagnostics and security auditing suite featuring real-time WebSocket telemetry, thread-offloaded packet sniffing, and concurrent TCP port scanning.
 
-![Backend CI](https://github.com/kamlesh-barik/Realtime-Network-Telemetry-and-Security-Auditor/actions/workflows/ci.yml/badge.svg)
-![Frontend Build](https://github.com/kamlesh-barik/Realtime-Network-Telemetry-and-Security-Auditor/actions/workflows/ci.yml/badge.svg)
+![Backend CI](https://github.com/Kamleshbarik05/Realtime-Network-Telemetry-and-Security-Auditor/actions/workflows/ci.yml/badge.svg)
+![Frontend Build](https://github.com/Kamleshbarik05/Realtime-Network-Telemetry-and-Security-Auditor/actions/workflows/ci.yml/badge.svg)
 
 ## Live Demo
-[Placeholder: Link to your live hosted frontend/backend portfolio site]
+[http://telemetry-kamlesh-barik-05.s3-website.ap-south-1.amazonaws.com/](http://telemetry-kamlesh-barik-05.s3-website.ap-south-1.amazonaws.com/)
 
 ## Performance Metrics
 
