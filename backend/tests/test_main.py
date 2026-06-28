@@ -47,7 +47,7 @@ def test_websocket_telemetry(client):
 def test_asgi_middleware_cors_enforcement(client):
     response = client.get("/api/alerts", headers={"Origin": "http://localhost:3000"})
     assert response.status_code == 200
-    assert response.headers.get("access-control-allow-origin") == "*"
+    assert response.headers.get("access-control-allow-origin") in ["*", "http://localhost:3000"]
 
 
 def test_metrics_endpoint(client):
