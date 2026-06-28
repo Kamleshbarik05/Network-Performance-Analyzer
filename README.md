@@ -1,12 +1,13 @@
 # Realtime Network Telemetry & Security Auditor
 
-An enterprise-grade, high-performance network diagnostics and security auditing suite featuring real-time WebSocket telemetry, thread-offloaded packet sniffing, and concurrent TCP port scanning.
+An enterprise-grade, high-performance network diagnostics and security auditing suite featuring real-time WebSocket telemetry, thread-offloaded packet sniffing, and concurrent TCP port scanning. Deployed across a multi-cloud architecture utilizing AWS EC2 for backend services and AWS S3/CloudFront + Azure Static Web Apps for frontend hosting.
 
 ![Backend CI](https://github.com/Kamleshbarik05/Realtime-Network-Telemetry-and-Security-Auditor/actions/workflows/ci.yml/badge.svg)
 ![Frontend Build](https://github.com/Kamleshbarik05/Realtime-Network-Telemetry-and-Security-Auditor/actions/workflows/ci.yml/badge.svg)
 
 ## Live Demo
-[http://telemetry-kamlesh-barik-05.s3-website.ap-south-1.amazonaws.com/](http://telemetry-kamlesh-barik-05.s3-website.ap-south-1.amazonaws.com/)
+* **AWS CloudFront (S3 Origin)**: [https://d1eds33nsxdon1.cloudfront.net](https://d1eds33nsxdon1.cloudfront.net)
+* **Azure Static Web Apps**: *[Deploying - URL will be added here]*
 
 ## Performance Metrics
 
