@@ -163,9 +163,20 @@ async def telemetry_background_loop():
                     db.add(alert)
                     db.commit()
                     db.refresh(alert)
-                    active_alerts.append(alert)
-
                 db.commit()
+
+                # Keep database size bounded by pruning latency logs older than 12 hours
+                # and alerts/warnings older than 3 days
+                from datetime import timedelta
+                try:
+                    cutoff_latency = datetime.utcnow() - timedelta(hours=12)
+                    db.query(HistoricalLatency).filter(HistoricalLatency.timestamp < cutoff_latency).delete()
+                    
+                    cutoff_alerts = datetime.utcnow() - timedelta(days=3)
+                    db.query(SystemAlert).filter(SystemAlert.timestamp < cutoff_alerts).delete()
+                    db.commit()
+                except Exception as prune_err:
+                    print(f"[BACKGROUND TASK] Prune Error: {prune_err}")
 
                 # Update live database write latency metric using Exponential Moving Average
                 db_duration_ms = (time.time() - db_start) * 1000
