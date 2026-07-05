@@ -6,8 +6,8 @@ An enterprise-grade, high-performance network diagnostics and security auditing 
 ![Frontend Build](https://github.com/Kamleshbarik05/Realtime-Network-Telemetry-and-Security-Auditor/actions/workflows/ci.yml/badge.svg)
 
 ## Live Demo
-* **AWS CloudFront (S3 Origin)**: [https://d1eds33nsxdon1.cloudfront.net](https://d1eds33nsxdon1.cloudfront.net)
-* **Azure Static Web Apps**: *[Deploying - URL will be added here]*
+* **AWS CloudFront (S3 Origin)**: *[(https://d1eds33nsxdon1.cloudfront.net)]*
+* **Azure Static Web Apps**: *[(https://telemetrykamlesh05.z29.web.core.windows.net/)]*
 
 ## Performance Metrics
 
