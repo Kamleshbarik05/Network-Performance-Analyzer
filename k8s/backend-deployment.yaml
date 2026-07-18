@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemetry-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telemetry-backend
+  template:
+    metadata:
+      labels:
+        app: telemetry-backend
+    spec:
+      containers:
+      - name: backend
+        image: telemetry-backend:latest
+        imagePullPolicy: Never # Forces Minikube to use local image
+        ports:
+        - containerPort: 8000
+        securityContext:
+          capabilities:
+            add: ["NET_RAW"] # Required for ping / raw socket sniffers
+        env:
+        - name: API_SECURITY_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: telemetry-secrets
+              key: API_SECURITY_TOKEN
+        - name: PING_TARGET_HOST
+          valueFrom:
+            secretKeyRef:
+              name: telemetry-secrets
+              key: PING_TARGET_HOST
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telemetry-backend
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+  selector:
+    app: telemetry-backend

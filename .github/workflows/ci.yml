@@ -55,3 +55,30 @@ jobs:
       - name: Build Application
         run: npm run build
         working-directory: frontend
+
+  security:
+    name: Security SAST & Secret Scans
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # GitLeaks needs full history to scan commits
+
+      - name: Run GitLeaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true # Non-blocking for mock keys in histories
+
+      - name: Set up Python for Semgrep
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run Semgrep SAST Scan
+        run: |
+          python -m pip install --upgrade pip
+          pip install semgrep
+          semgrep scan --error --config auto --exclude="venv" --exclude="legacy"

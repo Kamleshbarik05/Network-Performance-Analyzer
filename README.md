@@ -47,17 +47,17 @@ FastAPI (ASGI Backend / asyncio)
 
 ## Key Engineering Decisions
 
-### Why asyncio for Port Scanning?
-Port scanning is heavily I/O-bound. Spawning thousands of standard OS threads for socket handshakes causes massive overhead. Conversely, running an unconstrained `asyncio` loop will attempt to open thousands of file descriptors concurrently, triggering `OSError: [Errno 24] Too many open files` and exhausting system limits.
-To solve this, we implemented an asynchronous TCP connection loop governed by a strict `asyncio.Semaphore` limit of `100`. This allows the application to achieve a high scanning rate of **98.2 ports/second** while keeping socket descriptors safely within operating system safety caps.
+### Exposure & Attack-Surface Detection (asyncio Port Scanner)
+To audit system vulnerability, we built an automated exposure detection engine that scans target networks for open ports. Because port scanning is heavily I/O-bound, spawning standard OS threads for socket handshakes is highly inefficient. Conversely, running an unconstrained `asyncio` loop will attempt to open thousands of file descriptors concurrently, triggering `OSError: [Errno 24] Too many open files` and exposing the system to resource exhaustion.
+To mitigate this risk, the exposure scanner is governed by a strict `asyncio.Semaphore` concurrency cap of `100`. This allows the scanner to achieve a high audit throughput of **98.2 ports/second** while keeping socket descriptors safely within operating system safety limits.
 
 ### SQLAlchemy Bulk Commits
 Writing telemetry logs row-by-row forces the database engine (SQLite) to perform individual disk write transactions. Each commit initiates a disk write block sync, limiting performance to **8.26ms per record**.
 By refactoring the database logger to use batch insertions, we stage records in memory and commit them within a single transaction wrapper. This reduces disk I/O operations, dropping latency to **0.20ms per record**—a **42x speed improvement** that allows our services to scale to high-throughput logging.
 
-### Custom ASGI CORS Middleware
-Standard Starlette/FastAPI `CORSMiddleware` intercepts WebSocket upgrade handshake headers and throws a `403 Forbidden` error because WebSockets do not strictly follow the same Origin/HTTP access policies. 
-Rather than disabling CORS globally (creating a security vulnerability), we designed a custom ASGI middleware wrapper. It detects if an incoming connection scope type is `websocket`, bypassing the check to allow real-time telemetry streaming, while enforcing strict CORS checks on standard HTTP REST API endpoints.
+### Remediating WebSocket CORS Vulnerabilities (OWASP-Adjacent)
+Cross-Origin Resource Sharing (CORS) misconfigurations are a major security vulnerability (related to OWASP Top 10 Security Misconfigurations). Standard Starlette/FastAPI `CORSMiddleware` blocks WebSocket upgrade handshake headers by default, which frequently leads developers to disable CORS checks globally (`allow_origins=["*"]`) for both HTTP and WebSockets, leaving HTTP REST APIs exposed.
+Rather than sacrificing security, we engineered a custom ASGI middleware wrapper. It intercepts incoming traffic, identifies if the scope type is `websocket` to allow the connection handshake, while applying strict CORS origin constraints on all standard HTTP REST endpoints.
 
 ### Exponential Backoff Reconnect
 Real-world networks drop packets, causing WebSockets to disconnect. A naive reconnection mechanism that polls the backend constantly can trigger a self-induced Denial of Service (DoS) when a server restarts.
@@ -117,3 +117,17 @@ tests\test_main.py ....................                              [100%]
 TOTAL                                  501     82    84%
 ===================== 20 passed, 9 warnings in 3.49s ======================
 ```
+
+---
+
+## STRIDE Threat Model & Mitigations
+
+We analyzed the architecture using the Microsoft **STRIDE** threat modeling framework:
+
+* **S (Spoofing):** Mitigated by introducing optional `API_SECURITY_TOKEN` authentication on sensitive control endpoints (`/api/scan`, `/api/speedtest`).
+* **T (Tampering):** Remediated by Nginx reverse-proxying with TLS (HTTPS/WSS) to encrypt traffic in transit.
+* **R (Repudiation):** Covered by logging audit details (timestamps, latency histories, scan logs) directly to transactional database records.
+* **I (Information Disclosure):** Mitigated by custom ASGI middleware error handling to mask internal tracebacks from API error responses.
+* **D (Denial of Service):** Addressed by capping concurrent sockets to a strict `asyncio.Semaphore(100)` to prevent host file descriptor exhaustion.
+* **E (Elevation of Privilege):** Mitigated by running the uvicorn service under a dedicated, restricted daemon manager rather than open-root execution.
+

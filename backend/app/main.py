@@ -40,6 +40,12 @@ PACKET_LOSS_CRITICAL_THRESHOLD = float(os.getenv("PACKET_LOSS_CRITICAL_THRESHOLD
 # Initialize database tables
 Base.metadata.create_all(bind=engine)
 
+API_SECURITY_TOKEN = os.getenv("API_SECURITY_TOKEN")
+
+def verify_api_token(token: Optional[str] = Query(None)):
+    if API_SECURITY_TOKEN and token != API_SECURITY_TOKEN:
+        raise HTTPException(status_code=401, detail="Invalid or missing security token.")
+
 app = FastAPI(title="Enterprise Network Analyzer API")
 
 # Initialize the telemetry pipeline strategy context
@@ -283,7 +289,7 @@ def get_alerts(limit: int = 20, db: Session = Depends(get_db)):
     return db.query(SystemAlert).order_by(SystemAlert.timestamp.desc()).limit(limit).all()
 
 @app.post("/api/speedtest", response_model=SpeedTestResponse)
-async def trigger_speedtest(db: Session = Depends(get_db)):
+async def trigger_speedtest(db: Session = Depends(get_db), _ = Depends(verify_api_token)):
     """
     Triggers a thread-offloaded Speedtest.net speed test and logs results.
     """
@@ -309,7 +315,7 @@ def get_speedtest_history(limit: int = 10, db: Session = Depends(get_db)):
     return db.query(SpeedTestResult).order_by(SpeedTestResult.timestamp.desc()).limit(limit).all()
 
 @app.get("/api/scan")
-async def run_port_scan(ip: str, ports: Optional[str] = Query(None)):
+async def run_port_scan(ip: str, ports: Optional[str] = Query(None), _ = Depends(verify_api_token)):
     """
     Runs an asynchronous concurrent port scanner on the target IP.
     """
