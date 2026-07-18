@@ -12,12 +12,17 @@ spec:
       labels:
         app: telemetry-frontend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
       containers:
       - name: frontend
         image: telemetry-frontend:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 80
+        securityContext:
+          allowPrivilegeEscalation: false
 ---
 apiVersion: v1
 kind: Service
